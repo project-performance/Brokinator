@@ -3,7 +3,7 @@ package com.ppc;
 import org.junit.Test;
 
 /**
- * Testing {@link Brokinator}
+ * Testing {@link com.ppc.brokinator.Brokinator}
  */
 public class BrokinatorTest
 {

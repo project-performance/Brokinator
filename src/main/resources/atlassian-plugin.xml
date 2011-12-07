@@ -5,7 +5,33 @@
         <vendor name="${project.organization.name}" url="${project.organization.url}" />
     </plugin-info>
 
-    <macro name="brokinator" class="com.ppc.Brokinator" key="brokinator">
+    <macro name="brokinator" class="${project.groupId}.${project.artifactId}.Brokinator" key="brokinator">
         <description>This macro can be used to find and report pages, blog posts, and comments containing broken macros.</description>
     </macro>
+
+    <xwork name="Brokinator Actions" key="brokinator-actions-xwork">
+        <package name="Brokinator Actions" extends="default" namespace="/admin/brokinator" key="brokinator-actions-package">
+            <default-interceptor-ref name="defaultStack"/>
+
+            <action name="brokinator" class="${project.groupId}.${project.artifactId}.BrokinatorAction">
+                <result name="success" type="velocity">/templates/error-report-action.vm</result>
+                <result name="error" type="velocity">/templates/error-report-action.vm</result>
+            </action>
+        </package>
+    </xwork>
+
+    <web-section key="brokinator.admin.web-section" name="Brokinator Admin Web Section"
+                 location="system.admin" weight="300">
+        <label key="Brokinator"/>
+    </web-section>
+
+    <web-item key="brokinator-menu-item" name="Brokinator"
+              section="system.admin/brokinator.admin.web-section" weight="10">
+        <description>Link to the Brokinator main screen.</description>
+        <label key="Brokinator"/>
+        <link linkId="${project.groupId}-${project.artifactId}-menu-brokinator-link">
+            /admin/brokinator/brokinator.action
+        </link>
+    </web-item>
+
 </atlassian-plugin>

@@ -1,4 +1,4 @@
-package com.ppc;
+package com.ppc.brokinator;
 
 import com.atlassian.confluence.core.BodyContent;
 import com.atlassian.confluence.core.ContentEntityObject;
