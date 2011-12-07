@@ -13,8 +13,12 @@ import com.atlassian.renderer.RenderContext;
 import com.atlassian.renderer.WikiStyleRenderer;
 import com.atlassian.renderer.v2.RenderMode;
 import com.atlassian.renderer.v2.macro.MacroException;
+import com.opensymphony.webwork.ServletActionContext;
+import com.ppc.brokinator.managers.BrokinatorManager;
+import org.apache.axis.utils.StringUtils;
 import org.apache.felix.framework.resolver.Content;
 
+import javax.servlet.http.HttpServletRequest;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -26,33 +30,24 @@ import java.util.Map;
  * Time: 3:12 PM
  * To change this template use File | Settings | File Templates.
  */
+// TODO: Create a branch to add Confluence 4.0 support
+// TODO: Add options to the action screen so users can check spaces from a multiselect list; checkboxes for pages, blogposts, comments; input field to set path for output file
 public class BrokinatorAction extends ConfluenceActionSupport {
-    public static final String TEMPLATES_ERROR_REPORT = "templates/error-report.vm";
+    private final BrokinatorManager brokinatorManager;
 
-    private static final String[] ERROR_TEXTS = {
-        "<span class=\"error\">",
-        "Unknown macro"
-    };
+    private List<ContentEntityObject> erroredEntities;
 
-    private final PageManager pageManager;
-    private final SpaceManager spaceManager;
-    private final WikiStyleRenderer wikiStyleRenderer;
-
-    private ArrayList<ContentEntityObject> erroredEntities;
-
-    public ArrayList<ContentEntityObject> getErroredEntities() {
-        return erroredEntities;
+    public List<ContentEntityObject> getErroredEntities() {
+        return brokinatorManager.getErroredEntities();
     }
 
-    public void setErroredEntities(ArrayList<ContentEntityObject> erroredEntities) {
+    public void setErroredEntities(List<ContentEntityObject> erroredEntities) {
         this.erroredEntities = erroredEntities;
     }
 
-    public BrokinatorAction(PageManager pageManager, SpaceManager spaceManager, WikiStyleRenderer wikiStyleRenderer)
+    public BrokinatorAction(BrokinatorManager brokinatorManager)
     {
-        this.pageManager = pageManager;
-        this.spaceManager = spaceManager;
-        this.wikiStyleRenderer = wikiStyleRenderer;
+        this.brokinatorManager = brokinatorManager;
     }
 
     public boolean hasBody()
@@ -65,48 +60,14 @@ public class BrokinatorAction extends ConfluenceActionSupport {
         return RenderMode.NO_RENDER;
     }
 
-    private void checkContentEntityObjects(final List<ContentEntityObject> list, final ContentEntityObject entity) {
-        for (final Object obj2 : entity.getBodyContents()) {
-            if (obj2 instanceof BodyContent) {
-                final BodyContent content = (BodyContent) obj2;
-
-                // TODO: The storage format is changing away from wiki markup to XHTML in Confluence 4, so the following check will fail. The ideal solution here is to put all this code into an xwork action rather than a macro
-                final String pageContent = content.getBody();
-
-                final String renderedPage = wikiStyleRenderer.convertWikiToXHtml(entity.toPageContext(), pageContent);
-                for (final String errorText : ERROR_TEXTS) {
-                    if (renderedPage.contains(errorText)) {
-                        list.add(entity);
-                        break;
-                    }
-                }
-
-                for (final Comment comment : entity.getComments()) {
-                    checkContentEntityObjects(list, comment);
-                }
-            }
-        }
-    }
-
     @Override
     public String execute() {
-        // TODO: Output should be redirected to a file on disk because this operation can take a very long time on production systems -- especially when attempting to render high-load macros (like CustomWare's reporting macro)
-        final Map<String,Object> context = MacroUtils.defaultVelocityContext();
-        erroredEntities = new ArrayList<ContentEntityObject>();
+        // TODO: Output should be redirected to a file on disk because this operation can take a very long time on production systems and produce a large amount of output.
+        final HttpServletRequest req = ServletActionContext.getRequest();
+        if (StringUtils.isEmpty(req.getParameter("confirmed"))) return SUCCESS;
 
-        for (final Space space : spaceManager.getAllSpaces()) {
-            for (final Object obj : pageManager.getPages(space, true)) {
-                if (obj instanceof ContentEntityObject) {
-                    checkContentEntityObjects(erroredEntities, (ContentEntityObject) obj);
-                }
-            }
-            for (final Object obj : pageManager.getBlogPosts(space, true)) {
-                if (obj instanceof ContentEntityObject) {
-                    checkContentEntityObjects(erroredEntities, (ContentEntityObject) obj);
-                }
-            }
-        }
-
+        brokinatorManager.searchAllSpaces();
+        
         return SUCCESS;
     }
 }

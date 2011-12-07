@@ -5,10 +5,6 @@
         <vendor name="${project.organization.name}" url="${project.organization.url}" />
     </plugin-info>
 
-    <macro name="brokinator" class="${project.groupId}.${project.artifactId}.Brokinator" key="brokinator">
-        <description>This macro can be used to find and report pages, blog posts, and comments containing broken macros.</description>
-    </macro>
-
     <xwork name="Brokinator Actions" key="brokinator-actions-xwork">
         <package name="Brokinator Actions" extends="default" namespace="/admin/brokinator" key="brokinator-actions-package">
             <default-interceptor-ref name="defaultStack"/>
@@ -19,6 +15,14 @@
             </action>
         </package>
     </xwork>
+
+    <component key="brokinatorManager"
+               class="${project.groupId}.${project.artifactId}.managers.impl.BrokinatorManagerImpl"
+               name="brokinatorManager"
+               alias="brokinatorManager">
+        <description>Used by the Brokinator action.</description>
+        <interface>${project.groupId}.${project.artifactId}.managers.BrokinatorManager</interface>
+    </component>
 
     <web-section key="brokinator.admin.web-section" name="Brokinator Admin Web Section"
                  location="system.admin" weight="300">

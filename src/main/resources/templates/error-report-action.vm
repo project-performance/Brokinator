@@ -1,3 +1,16 @@
+<html>
+<head>
+    <title>Brokinator</title>
+</head>
+
+<body>
+    <form method="POST" class="aui">
+        <h3>Run</h3>
+        #form_xsrfToken()
+        <input type="hidden" id="confirmed" name="confirmed" value="true"/>
+        <input type="submit" value="Run"/>
+    </form>
+## TODO: Produce better reports. A user would currently have to click on each link to determine the culprit. It would be nicer if a sortable table could be output instead.
 #if($action.erroredEntities.size() > 0)
     #set($cp=$req.contextPath)
     <ul class="aui">
@@ -12,3 +25,6 @@
 #else
 No macro errors could be found.
 #end
+
+</body>
+</html>
